@@ -60,7 +60,13 @@ jobs:
           # Push the result back to GitLab (no force needed since we're based on GitLab's version)
           git push gitlab HEAD:main
           
-          # Add tag
-          TAG_NAME="community"
-          git tag -a "$TAG_NAME" -m "Community contribution"
-          git push gitlab "$TAG_NAME"
+          # Check if the 'community' tag exists
+          echo "Checking for existing tag 'community'..."
+          if git ls-remote --tags gitlab | grep -q "refs/tags/community"; then
+            echo "Tag 'community' already exists. Skipping tag creation."
+          else
+            echo "Creating new tag 'community'."
+            git tag -a "community" -m "Community contribution"
+            git push gitlab "community"
+          fi
+
