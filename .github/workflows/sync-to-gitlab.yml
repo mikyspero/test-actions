@@ -45,7 +45,7 @@ jobs:
           git push gitlab HEAD:main
           
           # Add tag
-          TAG_NAME="community-$(date +%Y%m%d%H%M%S)"
+          TAG_NAME="community"
           git tag -a "$TAG_NAME" -m "Community contribution"
           git push gitlab "$TAG_NAME"
           
