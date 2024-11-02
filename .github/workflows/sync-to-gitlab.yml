@@ -1,11 +1,26 @@
 name: Sync to GitLab
+
 on:
   push:
     branches: [ "main" ]
+
 jobs:
   sync:
     runs-on: ubuntu-latest
+
     steps:
+      - name: Check for sync message
+        id: check_sync
+        run: |
+          echo "Checking commit message for sync flag..."
+          if [[ "${{ github.event.head_commit.message }}" == *"[sync]"* ]]; then
+            echo "This is a synchronization commit. Skipping further actions."
+            echo "skip=true" >> $GITHUB_ENV  # Set an environment variable to skip the sync
+          else
+            echo "This is a normal commit. Proceeding with sync."
+            echo "skip=false" >> $GITHUB_ENV  # Set to false to continue
+          fi
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -27,6 +42,7 @@ jobs:
           git remote add gitlab https://oauth2:${GITLAB_TOKEN}@gitlab.com/${GITLAB_USERNAME}/${GITLAB_REPO}.git
           
       - name: Sync with GitLab
+        if: env.skip == 'false'  # Only run this step if not a sync commit
         run: |
           # Fetch from GitLab
           git fetch gitlab main
@@ -48,7 +64,3 @@ jobs:
           TAG_NAME="community"
           git tag -a "$TAG_NAME" -m "Community contribution"
           git push gitlab "$TAG_NAME"
-          
-      - name: Cleanup
-        if: always()
-        run: git remote remove gitlab
