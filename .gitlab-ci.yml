@@ -13,8 +13,8 @@ sync_to_github:
     - git remote add github https://$GITHUB_USERNAME:$GITHUB_TOKEN@github.com/$GITHUB_USERNAME/$GITHUB_REPO.git
     - git fetch github main  # Fetch the latest from GitHub's main branch
     # Step 3: Merge changes from GitLab's main branch with GitHub's main branch
-    - git checkout main  # Ensure we are on the main branch
-    - git pull origin main  # Pull the latest changes from GitLab's main branch
+    - git checkout -b main origin/main  # Checkout the main branch from GitLab
+    - git fetch github main               # Fetch the latest from GitHub's main branch
     - |
       git merge -X theirs github/main || {
         # If a merge conflict occurs, prefer GitLab's version
