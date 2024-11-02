@@ -32,12 +32,7 @@ jobs:
           git config user.email "${{ steps.author.outputs.email }}"
           git remote add gitlab https://oauth2:${GITLAB_TOKEN}@gitlab.com/${GITLAB_USERNAME}/${GITLAB_REPO}.git
           
-      #Tag the commit with community for identification
-      - name: Tag the commit with 'community'
-        run: |
-          TAG_NAME="community-$(date +%Y%m%d%H%M%S)"
-          git tag -a "$TAG_NAME" -m "Community contribution"
-          git push gitlab "$TAG_NAME"
+
   
       #synchronizes the push
       - name: Push changes to GitLab without force
