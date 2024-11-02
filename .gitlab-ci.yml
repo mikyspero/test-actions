@@ -29,8 +29,13 @@ sync_to_github:
         git merge --abort
         git reset --hard origin/main
       }
+      
+    # Step 5: Create a sync commit if this is a normal commit
+    - echo "Creating sync commit with message 'Sync from GitLab [sync]'"
+    - git commit --allow-empty -m "Sync from GitLab [sync]"
+
         # Step 4: Push the merged changes back to GitHub
-    - git push github main -m "Sync from GitLab [sync]"
+    - git push github main 
 
     # Step 5: Check if the "core" tag exists in GitHub
     - echo "Checking for existing tag 'core'..."
