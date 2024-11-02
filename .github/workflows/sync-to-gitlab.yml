@@ -8,7 +8,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Important: fetch all history
+          fetch-depth: 0
           
       - name: Get commit author info
         id: author
@@ -31,15 +31,22 @@ jobs:
           # Fetch from GitLab
           git fetch gitlab main
           
-          # Create a merge commit if necessary
-          git merge --allow-unrelated-histories gitlab/main -m "Merge GitLab changes"
+          # Create a temporary branch from GitLab's version
+          git checkout -b temp_branch gitlab/main
           
-          # Tag for identification
+          # Try to merge GitHub changes, preferring GitLab's version
+          git merge -X theirs --no-edit origin/main || {
+            # If merge fails, keep GitLab's version
+            git merge --abort
+            git reset --hard gitlab/main
+          }
+          
+          # Push the result back to GitLab (no force needed since we're based on GitLab's version)
+          git push gitlab HEAD:main
+          
+          # Add tag
           TAG_NAME="community-$(date +%Y%m%d%H%M%S)"
           git tag -a "$TAG_NAME" -m "Community contribution"
-          
-          # Push changes back to GitLab
-          git push gitlab main
           git push gitlab "$TAG_NAME"
           
       - name: Cleanup
