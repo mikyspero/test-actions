@@ -4,8 +4,16 @@ stages:
 sync_to_github:
   stage: sync
   only:
-    - main  # Trigger only on changes to the main branch
+    - main
   script:
+    - echo "Checking commit message for sync flag..."
+    - if echo "$CI_COMMIT_MESSAGE" | grep -q "\[sync\]"; then
+        echo "This is a synchronization commit. Skipping further actions.";
+        exit 0;
+      else
+        echo "This is a normal commit. Proceeding with sync.";
+      fi
+
     # Step 1: Configure Git with the current user's username and email
     - git config --global user.name "$GITLAB_USER_LOGIN"  # Use the current GitLab user's username
     - git config --global user.email "$GITLAB_USER_EMAIL"  # Use the current GitLab user's email
@@ -22,8 +30,15 @@ sync_to_github:
         git reset --hard origin/main
       }
         # Step 4: Push the merged changes back to GitHub
-    - git push github main
+    - git push github main -m "Sync from GitLab [sync]"
 
-    # Step 5: Tag the latest commit with "core" and push the tag to GitHub
-    - git tag -f -a "core" -m "Core team contribution"
-    - git push --force github "core"
+    # Step 5: Check if the "core" tag exists in GitHub
+    - echo "Checking for existing tag 'core'..."
+    - |
+      if git ls-remote --tags github | grep -q "refs/tags/core"; then
+        echo "Tag 'core' already exists. Skipping tag creation.";
+      else
+        echo "Creating new tag 'core'."
+        git tag -f -a "core" -m "Core team contribution"
+        git push --force github "core"
+      fi
