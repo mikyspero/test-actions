@@ -1,0 +1,29 @@
+stages:
+  - sync
+
+sync_to_github:
+  stage: sync
+  only:
+    - main  # Trigger only on changes to the main branch
+  script:
+    # Step 1: Configure Git with the current user's username and email
+    - git config --global user.name "$GITLAB_USER_LOGIN"  # Use the current GitLab user's username
+    - git config --global user.email "$GITLAB_USER_EMAIL"  # Use the current GitLab user's email
+    # Step 2: Add GitHub as a remote
+    - git remote add github https://$GITHUB_USERNAME:$GITHUB_TOKEN@github.com/$GITHUB_USERNAME/$GITHUB_REPO.git
+    - git fetch github main  # Fetch the latest from GitHub's main branch
+    # Step 3: Merge changes from GitLab's main branch with GitHub's main branch
+    - git checkout main  # Ensure we are on the main branch
+    - git pull origin main  # Pull the latest changes from GitLab's main branch
+    - |
+      git merge -X theirs github/main || {
+        # If a merge conflict occurs, prefer GitLab's version
+        git merge --abort
+        git reset --hard origin/main
+      }
+        # Step 4: Push the merged changes back to GitHub
+    - git push github main
+
+    # Step 5: Tag the latest commit with "core" and push the tag to GitHub
+    - git tag -f -a "core" -m "Core team contribution"
+    - git push --force github "core"
